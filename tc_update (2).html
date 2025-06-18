@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Sheet Summary</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    setInterval(() => {
+      location.reload();
+    }, 10000); // 10 seconds
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: white;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #b30000;
+    }
+    h3 {
+      color: #990000;
+    }
+    #summary {
+      text-align: center;
+      font-size: 18px;
+      margin-top: -10px;
+      color: black;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .grid-box {
+      border: 2px solid #ffcccc;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.9);
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(204, 0, 0, 0.1);
+    }
+    .rewards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .reward-item {
+      background-color: #ffe6e6;
+      padding: 10px;
+      border: 1px solid #ff9999;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #990000;
+    }
+    .reward-item span {
+      font-weight: bold;
+    }
+    .trophy {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ffcccc;
+      padding: 8px;
+    }
+    #region-summary table {
+      background-color: #ffe6e6;
+    }
+    #top-leaderboard-summary table {
+      background-color: #fff0f5;
+    }
+    th {
+      background-color: #ffe6e6;
+      color: #b30000;
+    }
+    hr {
+      border: 0;
+      border-top: 2px solid #ffcccc;
+      margin: 40px 0 20px;
+    }
+    .offer-img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 2px solid #ff9999;
+    }
+  </style>
+  <script>
+    google.charts.load('current', {
+      'packages': ['table']
+    });
+    google.charts.setOnLoadCallback(fetchSheetData);
+
+    function fetchSheetData() {
+      const query = new google.visualization.Query(
+        `https://docs.google.com/spreadsheets/d/e/2PACX-1vT6ocPorCLK6AtwDhaWRDqCTr9zAgIOKazmetQxLo1qrRw7nNzVbU-fkxyHgUSdJItmSdsB80LPD2nh/gviz/tq?gid=0`
+      );
+      query.send(handleQueryResponse);
+    }
+
+    function handleQueryResponse(response) {
+      if (response.isError()) {
+        document.getElementById('summary').innerText = 'Error loading data.';
+        return;
+      }
+
+      const data = response.getDataTable();
+      let rowCount = 0;
+      let regionCounts = {};
+      let topLeaderboardCounts = {};
+
+      const now = new Date();
+      const thisMonth = now.getMonth();
+      const thisYear = now.getFullYear();
+
+      const rows = data.getNumberOfRows();
+      for (let i = 0; i < rows; i++) {
+        const dateCell = data.getValue(i, 4); // Column E (index 4)
+        const date = new Date(dateCell);
+
+        if (date.getFullYear() === thisYear && date.getMonth() === thisMonth) {
+          const region = data.getValue(i, 2);
+          const leaderboard = data.getValue(i, 3);
+
+          rowCount++;
+          regionCounts[region] = (regionCounts[region] || 0) + 1;
+          topLeaderboardCounts[leaderboard] = (topLeaderboardCounts[leaderboard] || 0) + 1;
+        }
+      }
+
+      document.getElementById('summary').innerHTML = `<strong>Total Shared:</strong> ${rowCount}`;
+
+      let regionHTML = '<h3>Regionwise Split of Data Shared</h3><table><tr><th>Region</th><th>Students Shared</th></tr>';
+      for (const region in regionCounts) {
+        regionHTML += `<tr><td>${region}</td><td>${regionCounts[region]}</td></tr>`;
+      }
+      regionHTML += '</table>';
+      document.getElementById('region-summary').innerHTML = regionHTML;
+
+      let leaderboardHTML = '<h3>Advisors Leaderboard</h3><table><tr><th>Advisor</th><th>Students Shared</th></tr>';
+      const sortedLeaderboard = Object.entries(topLeaderboardCounts).sort((a, b) => b[1] - a[1]);
+      for (const [value, count] of sortedLeaderboard) {
+        leaderboardHTML += `<tr><td>${value}</td><td>${count}</td></tr>`;
+      }
+      leaderboardHTML += '</table>';
+      document.getElementById('top-leaderboard-summary').innerHTML = leaderboardHTML;
+    }
+  </script>
+</head>
+<body>
+  <h2>TC Global June Update</h2>
+  <h3 id="summary"></h3>
+  <div class="grid-container">
+    <div class="grid-box">
+      <h3>Rewards for the Month</h3>
+      <div class="rewards-container">
+        <div class="reward-item"><span class="trophy">🏆</span> 1st Place: ₹5,000 Amazon Voucher</div>
+        <div class="reward-item"><span class="trophy">🥈</span> 2nd Place: ₹2,500 Amazon Voucher</div>
+        <div class="reward-item"><span class="trophy">🥉</span> 3rd Place: ₹1,000 Amazon Voucher</div>
+      </div>
+    </div>
+    <div class="grid-box" id="top-leaderboard-summary"></div>
+    <div class="grid-box" id="region-summary"></div>
+    <div class="grid-box">
+      <h3>Current Offering</h3>
+      <img class="offer-img" src="https://i.postimg.cc/MTCjCbcp/FR-Creative-for-promotional-ad-Ad2-06.png" alt="50% Off Offer">
+      <br><br>
+      <a href="https://i.postimg.cc/MTCjCbcp/FR-Creative-for-promotional-ad-Ad2-06.png" download>
+        <button style="margin-top:10px;padding:8px 12px;background-color:#b30000;color:white;border:none;border-radius:5px;">Download Offer</button>
+      </a>
+    </div>
+  </div>
+
+  <hr>
+  <h3 style="text-align: center;">Raw Data</h3>
+  <div id="data-table"></div>
+</body>
+</html>
