@@ -161,7 +161,7 @@
         regionHTML += '</table>';
         document.getElementById('region-summary').innerHTML = regionHTML;
 
-        let leaderboardHTML = '<h3>Advisors Leaderboard</h3><table><tr><th>Advisor</th><th>Students Shared</th></tr>';
+        let leaderboardHTML = '<h3>RM Leaderboard</h3><table><tr><th>RM</th><th>Students Shared</th></tr>';
         const sortedLeaderboard = Object.entries(topLeaderboardCounts).sort((a, b) => b[1] - a[1]);
         for (const [value, count] of sortedLeaderboard) {
           leaderboardHTML += `<tr><td>${value}</td><td>${count}</td></tr>`;
